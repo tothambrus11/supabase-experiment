@@ -127,10 +127,10 @@ echo
 
 # ------------------------------------------------------------- verdict
 echo "VERDICT"
-[ "$DOOD_OK" = 1 ] && echo "  docker-outside-of-docker (this repo): SHOULD WORK" \
-                   || echo "  docker-outside-of-docker (this repo): WILL NOT WORK as configured"
-[ "$DIND_OK" = 1 ] && echo "  docker-in-docker (../supabase-dind):  SHOULD WORK" \
-                   || echo "  docker-in-docker (../supabase-dind):  WILL NOT WORK here"
+[ "$DOOD_OK" = 1 ] && echo "  docker-outside-of-docker: SHOULD WORK" \
+                   || echo "  docker-outside-of-docker: WILL NOT WORK as configured"
+[ "$DIND_OK" = 1 ] && echo "  docker-in-docker:         SHOULD WORK" \
+                   || echo "  docker-in-docker:         WILL NOT WORK here"
 [ "$DOOD_OK" = 1 ] || [ "$DIND_OK" = 1 ] || \
   echo "  Neither. Point the app at a hosted Supabase project instead."
 

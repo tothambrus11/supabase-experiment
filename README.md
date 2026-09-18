@@ -312,7 +312,7 @@ condition 2 exists to catch.
 | | DooD | DinD |
 | --- | --- | --- |
 | Your laptop (verified) | ✅ | ✅ |
-| GitHub Actions `ubuntu-latest` (VM runner) | ✅ *expected* | ✅ *expected* |
+| GitHub Actions `ubuntu-latest` (VM runner) | ✅ **verified in CI** | ✅ **verified in CI** |
 | GitHub Actions with a `container:` job | ❌ *expected* — path mismatch | ✅ if privileged |
 | Cloud sandbox / Claude VM | **Depends — run the preflight** | ❌ usually no `--privileged` |
 | No Docker daemon at all | ❌ | ❌ |
