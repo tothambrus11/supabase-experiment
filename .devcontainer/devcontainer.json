@@ -1,0 +1,60 @@
+{
+  "name": "supabase-experiment",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:24",
+
+  // --- Docker strategy -----------------------------------------------------
+  // Docker-OUTSIDE-of-Docker: the Supabase stack runs as *sibling* containers on
+  // the host daemon. The devcontainer only gets a docker CLI pointed at the host
+  // socket. Docker-in-Docker is a genuine alternative (prototyped in
+  // ../supabase-dind, see the comparison in README.md) - it needs neither of the
+  // two workarounds below, but costs --privileged, a private ~8 GB image cache per
+  // project, and host ports only via the editor.
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      // The base image is Debian trixie, which has no 'moby-cli' package, so the
+      // feature's default (moby: true) fails to install. false = upstream Docker
+      // CE client, which is all we need since the daemon is the host's.
+      "moby": false
+    }
+  },
+
+  // --- Workspace path ------------------------------------------------------
+  // Mount the workspace at the SAME absolute path it has on the host. Load-bearing,
+  // not cosmetic: the Supabase CLI runs in here but drives the *host* daemon, so
+  // every bind mount it requests (supabase/snippets, supabase/functions, ...) is
+  // resolved by the host against HOST paths. With the default /workspaces/<name>
+  // target those paths don't exist on the host and the daemon silently creates
+  // empty root-owned directories instead of mounting your code.
+  "workspaceMount": "source=${localWorkspaceFolder},target=${localWorkspaceFolder},type=bind,consistency=cached",
+  "workspaceFolder": "${localWorkspaceFolder}",
+
+  // --- Reaching the Supabase stack ----------------------------------------
+  // The CLI talks to the services over their *published host ports* and defaults
+  // to 127.0.0.1, which inside this container is the container itself. Pointing it
+  // at the host gateway fixes `start`, `status`, `db reset`, `migration`, etc.
+  // (The CLI publishes on 0.0.0.0, so the gateway address reaches them.)
+  "runArgs": ["--add-host=host.docker.internal:host-gateway"],
+  "containerEnv": {
+    "SUPABASE_SERVICES_HOSTNAME": "host.docker.internal",
+    "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+  },
+
+  "remoteUser": "node",
+
+  "postCreateCommand": "npm ci",
+  "postStartCommand": ".devcontainer/setup.sh",
+
+  // NOTE: deliberately no "forwardPorts". Under docker-outside-of-docker the
+  // Supabase ports are published by the HOST daemon, so they are already on
+  // localhost for your browser. This container never binds them, so there is
+  // nothing for the editor to forward.
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "denoland.vscode-deno",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  }
+}

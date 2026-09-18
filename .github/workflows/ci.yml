@@ -1,0 +1,43 @@
+# The recommended CI path: run Supabase directly on the runner, no devcontainer.
+#
+# On a VM runner the devcontainer buys you nothing - the runner IS the Docker
+# host, so `127.0.0.1` and workspace paths are already correct and none of the
+# devcontainer workarounds are needed. Use the devcontainer locally; use this in CI.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    # Must be a VM runner. Do NOT add `container:` here - that would put these
+    # steps inside a container talking to the runner's daemon, which breaks
+    # Supabase's bind mounts (see scripts/preflight.sh, check 3).
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # Proves the environment can host the stack before we blame the app.
+      # --require dood so a runner that forbids privileged containers (which only
+      # docker-in-docker needs) does not fail this job.
+      - name: Preflight
+        run: ./scripts/preflight.sh --require dood
+
+      - name: Start Supabase
+        run: npx supabase start
+
+      - name: Smoke test
+        run: npm run smoke
+
+      - name: Stop Supabase
+        if: always()
+        run: npx supabase stop
