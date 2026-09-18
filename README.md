@@ -354,13 +354,25 @@ smoke test from the host with no `SUPABASE_SERVICES_HOSTNAME`: it connects to
 `http://127.0.0.1:54321` and passes, which is exactly what the runner does.
 
 `.github/workflows/ci-devcontainer.yml` additionally builds the devcontainer, so a
-broken `devcontainer.json` fails a PR. It **should** work on `ubuntu-latest` —
-`${localWorkspaceFolder}` is `/home/runner/work/<repo>/<repo>`, a real host path,
-and `host-gateway` resolves to the bridge gateway (typically `172.17.0.1`) rather
-than Docker Desktop's address — either is fine, since the CLI publishes on
-`0.0.0.0`. But I could not run
-it: there is no remote to push to. It is `workflow_dispatch`-only and marked
-untested until it goes green once.
+broken `devcontainer.json` fails a PR. **Verified green on `ubuntu-latest`** — it
+runs on every push. The runner confirmed every prediction:
+
+```
+--mount source=/home/runner/work/supabase-experiment/supabase-experiment,\
+        target=/home/runner/work/supabase-experiment/supabase-experiment,type=bind
+-e SUPABASE_SERVICES_HOSTNAME=host.docker.internal --add-host=host.docker.internal:host-gateway
+
+PASS  the daemon mounts this exact path and sees the real contents
+PASS  resolves to 172.17.0.1
+Connecting to http://host.docker.internal:54321
+OK: read 2 rows from public.notes
+OK: edge function -> {"message":"hello from a devcontainer-managed edge function"}
+```
+
+`host-gateway` is `172.17.0.1` on a runner rather than Docker Desktop's address —
+fine either way, since the CLI publishes on `0.0.0.0`. The edge function passing is
+the part that matters: it proves the same-path `workspaceMount` resolved against
+the runner's own daemon.
 
 The one thing that will *not* work is adding `container:` to a job. GitHub mounts
 the workspace at `/__w/<repo>/<repo>` inside such a container while the runner
@@ -399,7 +411,7 @@ supabase/functions/hello/         example edge function
 scripts/smoke.mjs                 proves DB + edge function reachable from inside
 scripts/preflight.sh              "will this work here?" - run it in any new environment
 .github/workflows/ci.yml          CI without a devcontainer (the recommended path)
-.github/workflows/ci-devcontainer.yml  builds the devcontainer in CI (untested)
+.github/workflows/ci-devcontainer.yml  builds the devcontainer in CI (verified green)
 .env.example                      the inside-vs-browser URL split
 ```
 
