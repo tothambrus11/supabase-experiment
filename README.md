@@ -313,7 +313,7 @@ condition 2 exists to catch.
 | --- | --- | --- |
 | Your laptop (verified) | ✅ | ✅ |
 | GitHub Actions `ubuntu-latest` (VM runner) | ✅ **verified in CI** | ✅ **verified in CI** |
-| GitHub Actions with a `container:` job | ❌ *expected* — path mismatch | ✅ if privileged |
+| GitHub Actions with a `container:` job | ❌ **verified** — path mismatch | ✅ if privileged |
 | Cloud sandbox / Claude VM | **Depends — run the preflight** | ❌ usually no `--privileged` |
 | No Docker daemon at all | ❌ | ❌ |
 
@@ -374,12 +374,34 @@ fine either way, since the CLI publishes on `0.0.0.0`. The edge function passing
 the part that matters: it proves the same-path `workspaceMount` resolved against
 the runner's own daemon.
 
-The one thing that will *not* work is adding `container:` to a job. GitHub mounts
-the workspace at `/__w/<repo>/<repo>` inside such a container while the runner
-holds it at `/home/runner/work/<repo>/<repo>`; the daemon is the runner's, so
-`${localWorkspaceFolder}` names a path the daemon cannot resolve. That is exactly
-the nested half-(b) case above. Expected rather than verified — I modelled it with
-a socket-sharing container, not on Actions itself.
+The one thing that will *not* work is adding `container:` to a job — **verified on
+Actions** by `.github/workflows/probe-container-job.yml` (dispatch it to
+reproduce). A `container:` job runs your steps inside an image, and the runner
+starts it like this:
+
+```
+docker create --workdir /__w/supabase-experiment/supabase-experiment \
+  -v "/var/run/docker.sock":"/var/run/docker.sock" \
+  -v "/home/runner/work":"/__w"  ...  node:24
+```
+
+So the daemon *is* reachable (the socket is mounted, Docker 28.0.4) — but the
+workspace is remapped to `/__w/<repo>/<repo>`, a path that exists only inside the
+job container. The daemon is the runner's and cannot resolve it:
+
+```
+Workspace: /__w/supabase-experiment/supabase-experiment
+  FAIL  the daemon does NOT see this workspace at '/__w/supabase-experiment/supabase-experiment'
+VERDICT
+  docker-outside-of-docker: WILL NOT WORK as configured
+  docker-in-docker:         SHOULD WORK
+```
+
+Note the failure is the **silent** kind — the daemon returned an empty directory
+rather than an error, which is precisely the mode that would have let a
+`container:` job "pass" with empty edge functions had the preflight not caught it.
+DinD is unaffected: privileged is allowed, and it never hands host paths to an
+outer daemon.
 
 ## Gotchas hit while building this
 
