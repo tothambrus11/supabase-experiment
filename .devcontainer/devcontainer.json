@@ -12,7 +12,7 @@
   // the Supabase CLI runs in here but drives the HOST daemon, so the bind mounts it
   // requests (supabase/functions -> edge runtime) are resolved against host paths.
   // Change this and edge functions mount as an empty directory.
-  "workspaceMount": "source=${localWorkspaceFolder},target=${localWorkspaceFolder},type=bind,consistency=cached",
+  "workspaceMount": "source=${localWorkspaceFolder},target=${localWorkspaceFolder},type=bind",
   "workspaceFolder": "${localWorkspaceFolder}",
 
   // The CLI reaches the services on their published ports and defaults to

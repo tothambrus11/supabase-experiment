@@ -38,18 +38,17 @@ siblings, so they do not share a "localhost".
 
 `supabase status` prints whichever is right for where you run it. See `.env.example`.
 
-## Three things that will bite you
+## Operational notes
 
-- **A `config.toml` change seems to do nothing** — `supabase start` silently ignores
-  config when the stack is already running. Use `npx supabase stop && npx supabase start`.
-- **`supabase stop` keeps your data; `supabase stop --no-backup` deletes the volumes.**
-- **Edge functions 5xx after a reboot** — the CLI creates the edge runtime with
-  `restart: no` while the other services are `unless-stopped`, and `supabase start`
-  won't repair a partially-down stack. Re-run `.devcontainer/setup.sh`, which handles
-  both. Also: a function created *after* `supabase start` needs a stop/start to be
-  mounted.
+- **Restarts** — the devcontainer restarts the Supabase stack on every start, so
+  changes to `supabase/config.toml` are always applied. To apply a change without
+  restarting the devcontainer, run `npm run supabase:restart`.
+- **Data retention** — `npx supabase stop` preserves your data. `npx supabase stop
+  --no-backup` deletes the database volumes.
+- **Edge functions** — a function added while the stack is running is not mounted
+  into the edge runtime until the next restart.
 
-## A new machine, CI, or a sandbox
+## Other environments
 
 ```bash
 ./scripts/preflight.sh

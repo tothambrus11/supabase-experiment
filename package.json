@@ -6,7 +6,8 @@
     "smoke": "node scripts/smoke.mjs",
     "db:reset": "supabase db reset",
     "supabase:start": "supabase start",
-    "supabase:stop": "supabase stop"
+    "supabase:stop": "supabase stop",
+    "supabase:restart": "supabase stop && supabase start"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0"
