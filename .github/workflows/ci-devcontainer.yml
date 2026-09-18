@@ -1,13 +1,5 @@
-# Optional: exercise the devcontainer itself in CI, so a broken devcontainer.json
-# fails a PR rather than a teammate's morning.
-#
-#
-# Preconditions (both satisfied by ubuntu-latest, neither by a `container:` job):
-#   1. A VM runner, so ${localWorkspaceFolder} = /home/runner/work/<repo>/<repo>
-#      is a real path on the daemon's host and the same-path workspaceMount holds.
-#   2. A native dockerd. `host.docker.internal:host-gateway` resolves to the
-#      bridge gateway (typically 172.17.0.1) rather than Docker Desktop's address -
-#      either is fine, since the Supabase CLI publishes on 0.0.0.0.
+# Builds the devcontainer and runs the smoke test inside it, so a broken
+# devcontainer.json fails a PR rather than a teammate's morning.
 name: CI (devcontainer)
 
 on:
@@ -25,8 +17,6 @@ jobs:
       - name: Build devcontainer and run the smoke test inside it
         uses: devcontainers/ci@v0.3
         with:
-          # postStartCommand (.devcontainer/setup.sh) starts Supabase; runCmd
-          # then runs inside the devcontainer, exactly as it does locally.
           runCmd: |
-            ./scripts/preflight.sh --require dood
+            ./scripts/preflight.sh
             npm run smoke

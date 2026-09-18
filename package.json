@@ -1,23 +1,17 @@
 {
   "name": "supabase-experiment",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "type": "module",
   "scripts": {
     "smoke": "node scripts/smoke.mjs",
     "db:reset": "supabase db reset",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "module",
-  "devDependencies": {
-    "supabase": "^2.117.0"
-  },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0"
   },
-  "private": true
+  "devDependencies": {
+    "supabase": "^2.117.0"
+  }
 }

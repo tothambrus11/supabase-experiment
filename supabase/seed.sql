@@ -1,3 +1,2 @@
-insert into public.notes (body) values
-  ('seeded from supabase/seed.sql'),
-  ('devcontainer + supabase works');
+-- Seed data for local development. Applied by `supabase start` and `supabase db reset`.
+-- (Kept as an empty file so the CLI does not warn about a missing seed on every start.)
